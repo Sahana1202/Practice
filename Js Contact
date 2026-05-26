@@ -1,0 +1,119 @@
+/* ==========================================================================
+   CONTACT FORM JS MODULE - FLOATING LABELS, VALIDATION & MODALS
+   ========================================================================== */
+
+document.addEventListener('DOMContentLoaded', () => {
+  initFormInteractions();
+});
+
+function initFormInteractions() {
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+
+  const inputs = form.querySelectorAll('input, textarea');
+  const modal = document.getElementById('success-modal');
+  const modalClose = document.getElementById('modal-close');
+
+  /* 1. Floating Label Floating Check */
+  inputs.forEach(input => {
+    // Check initial content
+    if (input.value.trim() !== '') {
+      input.classList.add('has-value');
+    }
+
+    input.addEventListener('blur', () => {
+      if (input.value.trim() !== '') {
+        input.classList.add('has-value');
+      } else {
+        input.classList.remove('has-value');
+      }
+      
+      // Auto-validate single field on blur
+      validateField(input);
+    });
+
+    input.addEventListener('input', () => {
+      const errorEl = document.getElementById(`${input.id}-error`);
+      if (errorEl && errorEl.classList.contains('visible')) {
+        validateField(input);
+      }
+    });
+  });
+
+  /* 2. Validation Engine */
+  const validateField = (input) => {
+    const errorEl = document.getElementById(`${input.id}-error`);
+    let isValid = true;
+
+    if (input.required && input.value.trim() === '') {
+      isValid = false;
+    } else if (input.type === 'email' && input.value.trim() !== '') {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      isValid = emailRegex.test(input.value.trim());
+    }
+
+    if (!isValid) {
+      input.classList.add('invalid');
+      if (errorEl) errorEl.classList.add('visible');
+    } else {
+      input.classList.remove('invalid');
+      if (errorEl) errorEl.classList.remove('visible');
+    }
+
+    return isValid;
+  };
+
+  /* 3. Form Submit with Loading State and Success Popup */
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    let isFormValid = true;
+    inputs.forEach(input => {
+      const isFieldValid = validateField(input);
+      if (!isFieldValid) isFormValid = false;
+    });
+
+    if (isFormValid) {
+      const submitBtn = form.querySelector('.btn-submit');
+      
+      // Enter Loading State
+      submitBtn.classList.add('loading');
+      submitBtn.disabled = true;
+      inputs.forEach(input => input.disabled = true);
+
+      // Simulate a network API dispatch (2 seconds delay)
+      setTimeout(() => {
+        // Exit Loading State
+        submitBtn.classList.remove('loading');
+        submitBtn.disabled = false;
+        inputs.forEach(input => {
+          input.disabled = false;
+          input.value = '';
+          input.classList.remove('has-value');
+        });
+
+        // Trigger Success Modal
+        if (modal) {
+          modal.classList.add('active');
+          document.body.classList.add('no-scroll');
+        }
+      }, 2000);
+    }
+  });
+
+  /* 4. Close Modal */
+  if (modalClose && modal) {
+    modalClose.addEventListener('click', () => {
+      modal.classList.remove('active');
+      document.body.classList.remove('no-scroll');
+    });
+
+    // Close on overlay clicking
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+        document.body.classList.remove('no-scroll');
+      }
+    });
+  }
+}
