@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Main entry JavaScript controller that handles sticky headers, dark/light transitions, intersection observers for lazy animations, and responsive overlays.",
+  "updatedAt": "2026-05-26T04:39:37.203469700Z"
+}
