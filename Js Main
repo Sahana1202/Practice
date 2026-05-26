@@ -1,0 +1,149 @@
+/* ==========================================================================
+   MAIN JS MODULE - THEME, SCROLL REVEALS & SITE OVERLAYS
+   ========================================================================== */
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initScrollObserver();
+  initMobileNav();
+  initStickyHeader();
+  initBackToTop();
+});
+
+/* 1. Theme Toggle & LocalStorage State Management */
+function initTheme() {
+  const themeToggle = document.getElementById('theme-toggle');
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  
+  // Set initial theme
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  
+  themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Add micro-animation animation rotation class
+    themeToggle.classList.add('rotating');
+    setTimeout(() => themeToggle.classList.remove('rotating'), 500);
+  });
+}
+
+/* 2. Scroll Reveal Handler via Intersection Observer */
+function initScrollObserver() {
+  const revealElements = document.querySelectorAll('.reveal');
+  
+  const revealCallback = (entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal-active');
+        // Unobserve once revealed to keep layout performant
+        observer.unobserve(entry.target);
+      }
+    });
+  };
+
+  const revealObserver = new IntersectionObserver(revealCallback, {
+    root: null, // Viewport
+    threshold: 0.12, // 12% of element visible
+    rootMargin: '0px 0px -50px 0px' // Adjust scroll offset boundary
+  });
+
+  revealElements.forEach(el => revealObserver.observe(el));
+}
+
+/* 3. Mobile Navigation Overlay & Bar Animations */
+function initMobileNav() {
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileNav = document.getElementById('mobile-nav');
+  const mobileLinks = document.querySelectorAll('.mobile-link');
+  
+  const toggleMenu = () => {
+    menuToggle.classList.toggle('active');
+    mobileNav.classList.toggle('active');
+    document.body.classList.toggle('no-scroll');
+  };
+
+  menuToggle.addEventListener('click', toggleMenu);
+  
+  mobileLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (mobileNav.classList.contains('active')) {
+        toggleMenu();
+      }
+    });
+  });
+}
+
+/* 4. Sticky Header Blur & Hide-On-Scroll Behavior */
+function initStickyHeader() {
+  const header = document.getElementById('site-header');
+  let lastScrollY = window.scrollY;
+
+  window.addEventListener('scroll', () => {
+    // Add sticky blur class
+    if (window.scrollY > 50) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+
+    // Hide navigation on scroll down, show on scroll up
+    if (window.scrollY > 200) {
+      if (window.scrollY > lastScrollY) {
+        header.classList.add('hidden-nav');
+      } else {
+        header.classList.remove('hidden-nav');
+      }
+    }
+    
+    lastScrollY = window.scrollY;
+    highlightNavOnScroll();
+  });
+}
+
+/* Scroll Active Link Highlight */
+function highlightNavOnScroll() {
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  
+  let currentSectionId = '';
+  
+  sections.forEach(section => {
+    const sectionTop = section.offsetTop - 120;
+    const sectionHeight = section.offsetHeight;
+    
+    if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+      currentSectionId = section.getAttribute('id');
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${currentSectionId}`) {
+      link.classList.add('active');
+    }
+  });
+}
+
+/* 5. Back to Top Button */
+function initBackToTop() {
+  const backToTopBtn = document.getElementById('back-to-top');
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 600) {
+      backToTopBtn.classList.add('visible');
+    } else {
+      backToTopBtn.classList.remove('visible');
+    }
+  });
+
+  backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  });
+}
